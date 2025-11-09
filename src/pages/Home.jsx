@@ -2,7 +2,6 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { FixedSizeList as List } from "react-window";
 
-// Lazy load komponen
 const HeaderPull = React.lazy(() => import("../components/HeaderPull"));
 const TaskCard = React.lazy(() => import("../components/TaskCard"));
 const NavigationTabs = React.lazy(() => import("../components/NavigationTabs"));
@@ -14,7 +13,6 @@ export default function HomePage() {
   const [isHeaderOpen, setIsHeaderOpen] = useState(false);
   const [tasks, setTasks] = useState([]);
 
-  // Load user & tasks
   useEffect(() => {
     const storedName = localStorage.getItem("username");
     const storedPhoto = localStorage.getItem("photoURL");
@@ -27,7 +25,6 @@ export default function HomePage() {
     if (storedTasks) setTasks(JSON.parse(storedTasks));
   }, [navigate]);
 
-  // Simpan tasks ke localStorage dengan debounce
   const saveTasks = (newTasks) => {
     setTasks(newTasks);
     clearTimeout(window.saveTimeout);
@@ -49,7 +46,6 @@ export default function HomePage() {
     navigate("/");
   };
 
-  // Render single task (virtualized)
   const Row = ({ index, style }) => (
     <div style={style}>
       <Suspense fallback={<div className="text-gray-400">Loading task...</div>}>
