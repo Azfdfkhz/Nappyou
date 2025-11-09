@@ -11,12 +11,13 @@ export default function LoginScreen() {
   });
 
   useEffect(() => {
-    // Redirect jika sudah login
+    // Jika sudah login, langsung ke /home
     if (user.username) navigate("/home");
 
-    // Callback dari Android WebView
+    // ✅ Definisikan callback global agar bisa dipanggil dari Android
     window.onLoginSuccess = (token) => {
-      console.log("Android login token:", token);
+      console.log("✅ Android login success, token:", token);
+      alert("Login sukses!");
 
       const username = "User";
       const photoURL = "";
@@ -30,6 +31,7 @@ export default function LoginScreen() {
     };
 
     window.onLoginFail = () => {
+      console.log("❌ Login gagal dari Android");
       alert("Login gagal, coba lagi!");
     };
   }, [navigate, user.username]);
@@ -46,7 +48,7 @@ export default function LoginScreen() {
     <div className="w-screen h-screen flex flex-col justify-between items-center text-center px-6 py-10 bg-gradient-to-b from-[#174143] to-[#F9B487] overflow-hidden relative font-[Poppins]">
       {/* Title */}
       <h1 className="text-white font-bold text-2xl mt-8">
-        Welcome To Nappyyou
+        Welcome To Nappyou
       </h1>
 
       {/* Glass Card */}
