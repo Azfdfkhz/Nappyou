@@ -10,31 +10,25 @@ export default function LoginScreen() {
     photoURL: localStorage.getItem("photoURL") || "",
   });
 
-  useEffect(() => {
-    // Jika sudah login, langsung ke /home
+useEffect(() => {
     if (user.username) navigate("/home");
 
-    // ✅ Definisikan callback global agar bisa dipanggil dari Android
-    window.onLoginSuccess = (token) => {
-      console.log("✅ Android login success, token:", token);
-      alert("Login sukses!");
+    window.onLoginSuccess = (userData) => {
+      console.log("Android login data:", userData);
 
-      const username = "User";
-      const photoURL = "";
+      localStorage.setItem("username", userData.username);
+      localStorage.setItem("photoURL", userData.photoURL);
+      localStorage.setItem("firebaseToken", userData.uid);
 
-      localStorage.setItem("username", username);
-      localStorage.setItem("photoURL", photoURL);
-      localStorage.setItem("firebaseToken", token);
-
-      setUser({ username, photoURL });
+      setUser({ username: userData.username, photoURL: userData.photoURL });
       navigate("/home");
     };
 
     window.onLoginFail = () => {
-      console.log("❌ Login gagal dari Android");
       alert("Login gagal, coba lagi!");
     };
-  }, [navigate, user.username]);
+}, [navigate, user.username]);
+
 
   const handleLogin = () => {
     if (window.Android && window.Android.loginWithGoogle) {
