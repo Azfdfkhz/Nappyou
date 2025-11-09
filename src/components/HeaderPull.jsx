@@ -2,38 +2,37 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, animate } from "framer-motion";
 import Lottie from "lottie-react";
 
-import catSleep from "../assets/cat-sleep.json";
-import catLaugh from "../assets/cat-laugh.json";
-import catLove from "../assets/cat-love.json";
-
 export default function HeaderPull({ onOpenChange }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [animation, setAnimation] = useState(catSleep);
+  const [animation, setAnimation] = useState(null);
   const [catText, setCatText] = useState("Zzz... 💤");
-  const [lastAction, setLastAction] = useState(Date.now());
   const y = useMotionValue(0);
   const timeoutRef = useRef(null);
 
   useEffect(() => {
+    import("../assets/cat-sleep.json").then((mod) => setAnimation(mod.default));
+  }, []);
+
+  useEffect(() => {
     clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
-      setAnimation(catSleep);
-      setCatText("Zzz... ngantuk anjay");
+      import("../assets/cat-sleep.json").then((mod) => {
+        setAnimation(mod.default);
+        setCatText("Zzz... ngantuk anjay");
+      });
     }, 5000);
 
     return () => clearTimeout(timeoutRef.current);
-  }, [lastAction]);
+  }, [catText]);
 
   const handleTap = () => {
-    setAnimation(catLaugh);
+    import("../assets/cat-laugh.json").then((mod) => setAnimation(mod.default));
     setCatText("Hihihi");
-    setLastAction(Date.now());
   };
 
   const handleDragCat = () => {
-    setAnimation(catLove);
+    import("../assets/cat-love.json").then((mod) => setAnimation(mod.default));
     setCatText("Prr");
-    setLastAction(Date.now());
   };
 
   const toggleOpen = (value) => {
@@ -46,10 +45,6 @@ export default function HeaderPull({ onOpenChange }) {
     else if (info.offset.y < -60) toggleOpen(false);
 
     animate(y, 0, { type: "spring", stiffness: 300, damping: 25 });
-  };
-
-  const handleDrag = () => {
-    // optional: bisa pakai onPull jika mau animasi fade saat drag
   };
 
   return (
@@ -69,7 +64,7 @@ export default function HeaderPull({ onOpenChange }) {
         transition={{ type: "spring", stiffness: 180, damping: 22 }}
         className="overflow-hidden w-[calc(100vw-60px)] max-w-[430px] bg-[#133C3C] border-x border-white/20 flex flex-col items-center"
       >
-        {isOpen && (
+        {isOpen && animation && (
           <motion.div
             initial={{ scaleY: 0.95 }}
             animate={{ scaleY: [1, 1.05, 1] }}
@@ -103,7 +98,6 @@ export default function HeaderPull({ onOpenChange }) {
       <motion.div
         drag="y"
         dragConstraints={{ top: 0, bottom: 180 }}
-        onDrag={handleDrag}
         onDragEnd={handleDragEnd}
         style={{ y }}
         onClick={() => toggleOpen(!isOpen)}
