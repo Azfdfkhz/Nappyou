@@ -4,19 +4,16 @@ import { motion } from "framer-motion";
 const TaskCard = ({ tasks = [], toggleDone, editTask, deleteTask }) => {
   const [todayStr, setTodayStr] = useState(getTodayStr());
 
-  // Dapatkan tanggal hari ini format YYYY-MM-DD
   function getTodayStr() {
     const today = new Date();
     return today.toISOString().split("T")[0];
   }
 
-  // Update tanggal setiap 1 menit (untuk rolling over ke hari baru)
   useEffect(() => {
     const interval = setInterval(() => setTodayStr(getTodayStr()), 60000);
     return () => clearInterval(interval);
   }, []);
 
-  // Filter task yang due hari ini
   const tasksToday = tasks.filter((task) => task.dueDate?.startsWith(todayStr));
 
   return (
@@ -26,7 +23,6 @@ const TaskCard = ({ tasks = [], toggleDone, editTask, deleteTask }) => {
       transition={{ duration: 0.4 }}
       className="relative bg-gradient-to-b from-[#223C48]/70 to-[#2E4A56]/70 rounded-[16px] p-4 shadow-lg border border-white/10 w-[320px] text-white font-[Poppins] backdrop-blur-md"
     >
-      {/* Header */}
       <div className="flex justify-between items-center mb-3">
         <h2 className="font-semibold text-[15px]">Task Hari Ini</h2>
         <div className="bg-[#5B6B77]/40 px-3 py-1 text-[11px] rounded-full shadow-inner border border-white/20">
@@ -34,7 +30,6 @@ const TaskCard = ({ tasks = [], toggleDone, editTask, deleteTask }) => {
         </div>
       </div>
 
-      {/* List Task */}
       <ul className="space-y-1 text-[13px] min-h-[80px]">
         {tasksToday.length === 0 ? (
           <li className="text-gray-300/60 italic">Belum ada tugas hari ini</li>
