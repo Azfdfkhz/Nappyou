@@ -6,13 +6,25 @@ import { useNavigate } from "react-router-dom";
 export default function LoginScreen() {
   const navigate = useNavigate();
   const [user, setUser] = useState({
-    username: localStorage.getItem("username") || "",
-    photoURL: localStorage.getItem("photoURL") || "",
+    username: "",
+    photoURL: "",
   });
+  const [isLoading, setIsLoading] = useState(true);
 
-useEffect(() => {
-    if (user.username) navigate("/home");
+  // Ambil user dari localStorage tapi delay supaya WebView siap
+  useEffect(() => {
+    const savedUsername = localStorage.getItem("username");
+    const savedPhotoURL = localStorage.getItem("photoURL");
 
+    if (savedUsername) {
+      // Delay kecil supaya WebView tidak blank
+      setTimeout(() => {
+        setUser({ username: savedUsername, photoURL: savedPhotoURL || "" });
+        navigate("/home");
+      }, 100);
+    }
+
+    // Setup callback dari Android
     window.onLoginSuccess = (userData) => {
       console.log("Android login data:", userData);
 
@@ -27,8 +39,12 @@ useEffect(() => {
     window.onLoginFail = () => {
       alert("Login gagal, coba lagi!");
     };
-}, [navigate, user.username]);
 
+    // Simpan skeleton loading selama minimal 300ms
+    const loadingTimer = setTimeout(() => setIsLoading(false), 300);
+
+    return () => clearTimeout(loadingTimer);
+  }, [navigate]);
 
   const handleLogin = () => {
     if (window.Android && window.Android.loginWithGoogle) {
@@ -45,36 +61,41 @@ useEffect(() => {
         Welcome To Nappyou
       </h1>
 
-      {/* Glass Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="glass rounded-2xl p-6 w-72 h-72 flex flex-col items-center justify-center shadow-lg mt-10"
-      >
-        <div className="w-20 h-20 bg-white/40 rounded-full mb-6 overflow-hidden">
-          {user.photoURL && (
-            <img
-              src={user.photoURL}
-              alt="User"
-              className="w-full h-full object-cover rounded-full"
-            />
-          )}
+      {/* Glass Card / Skeleton */}
+      {isLoading ? (
+        <div className="glass rounded-2xl p-6 w-72 h-72 flex flex-col items-center justify-center shadow-lg mt-10 animate-pulse">
+          <div className="w-20 h-20 bg-white/30 rounded-full mb-6"></div>
+          <div className="w-48 h-10 bg-white/30 rounded-full"></div>
         </div>
-
-        <button
-          onClick={handleLogin}
-          className="flex items-center justify-center gap-2 bg-white/30 hover:bg-white/40 text-white font-semibold px-6 py-2 rounded-full backdrop-blur-md shadow-md border border-white/20 transition-all"
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="glass rounded-2xl p-6 w-72 h-72 flex flex-col items-center justify-center shadow-lg mt-10"
         >
-          <FcGoogle size={20} />
-          Login With Google
-        </button>
-      </motion.div>
+          <div className="w-20 h-20 bg-white/40 rounded-full mb-6 overflow-hidden">
+            {user.photoURL && (
+              <img
+                src={user.photoURL}
+                alt="User"
+                className="w-full h-full object-cover rounded-full"
+              />
+            )}
+          </div>
+
+          <button
+            onClick={handleLogin}
+            className="flex items-center justify-center gap-2 bg-white/30 hover:bg-white/40 text-white font-semibold px-6 py-2 rounded-full backdrop-blur-md shadow-md border border-white/20 transition-all"
+          >
+            <FcGoogle size={20} />
+            Login With Google
+          </button>
+        </motion.div>
+      )}
 
       {/* Footer */}
-      <p className="text-white/70 text-xs tracking-widest mb-6">
-        AZFDFKHZ
-      </p>
+      <p className="text-white/70 text-xs tracking-widest mb-6">AZFDFKHZ</p>
     </div>
   );
 }
