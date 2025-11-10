@@ -98,3 +98,4 @@ export default function LoginScreen() {
       <p className="text-white/70 text-xs tracking-widest mb-6">AZFDFKHZ</p>
     </div>
   );
+}
