@@ -1,35 +1,61 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { v4 as uuidv4 } from "uuid";
 
-const NavigationTabs = ({ tasks = [], setTasks = () => {} }) => {
+const NavigationTabs = ({ tasks, setTasks }) => {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDue, setTaskDue] = useState("");
+  const [editTaskId, setEditTaskId] = useState(null);
 
-  const addTask = () => {
+  const addOrEditTask = () => {
     if (!taskTitle) return;
-    const newTask = {
-      id: uuidv4(),
-      title: taskTitle,
-      dueDate: taskDue || null,
-      done: false,
-      notified: false,
-    };
-    const newTasks = [...tasks, newTask];
+
+    let newTasks;
+    if (editTaskId) {
+      // Edit existing task
+      newTasks = tasks.map((task) =>
+        task.id === editTaskId
+          ? { ...task, title: taskTitle, dueDate: taskDue || null, notified: false }
+          : task
+      );
+    } else {
+      // Add new task
+      const newTask = {
+        id: uuidv4(),
+        title: taskTitle,
+        dueDate: taskDue || null,
+        done: false,
+        notified: false,
+      };
+      newTasks = [...tasks, newTask];
+    }
+
     setTasks(newTasks);
     localStorage.setItem("tasks", JSON.stringify(newTasks));
     setTaskTitle("");
     setTaskDue("");
+    setEditTaskId(null);
     setShowTaskModal(false);
+  };
+
+  const editTask = (task) => {
+    setTaskTitle(task.title);
+    setTaskDue(task.dueDate || "");
+    setEditTaskId(task.id);
+    setShowTaskModal(true);
+  };
+
+  const deleteTask = (taskId) => {
+    const newTasks = tasks.filter((t) => t.id !== taskId);
+    setTasks(newTasks);
+    localStorage.setItem("tasks", JSON.stringify(newTasks));
   };
 
   const notifyTask = (task) => {
     if (window.Android && window.Android.showNotification) {
       window.Android.showNotification(task.title, task.description || "");
-    }
-
-    else if ("Notification" in window) {
+    } else if ("Notification" in window) {
       if (Notification.permission !== "granted") {
         Notification.requestPermission().then((perm) => {
           if (perm === "granted") {
@@ -42,7 +68,7 @@ const NavigationTabs = ({ tasks = [], setTasks = () => {} }) => {
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
       let updated = false;
@@ -65,14 +91,13 @@ const NavigationTabs = ({ tasks = [], setTasks = () => {} }) => {
         setTasks(newTasks);
         localStorage.setItem("tasks", JSON.stringify(newTasks));
       }
-    }, 60000); 
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [tasks]);
 
   return (
-    <div className="flex justify-center items-center flex-wrap gap-3 sm:gap-6 w-full">
-      {/* + Task */}
+    <div className="flex flex-col gap-3 w-full">
       <motion.button
         whileTap={{ scale: 0.95 }}
         onClick={() => setShowTaskModal(true)}
@@ -81,10 +106,9 @@ const NavigationTabs = ({ tasks = [], setTasks = () => {} }) => {
           border border-[#68a3b5]/40 text-slate-100 shadow-md
           hover:from-[#4c8aa2]/70 hover:to-[#234a5b]/70 transition-all text-sm sm:text-base"
       >
-        + Task
+        {editTaskId ? "Edit Task" : "+ Task"}
       </motion.button>
 
-      {/* Modal tambah task */}
       {showTaskModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-20">
           <motion.div
@@ -93,7 +117,7 @@ const NavigationTabs = ({ tasks = [], setTasks = () => {} }) => {
             exit={{ scale: 0.9, opacity: 0 }}
             className="bg-[#1b3b4a] p-6 rounded-xl w-80 text-white flex flex-col gap-3"
           >
-            <h3 className="font-semibold text-lg">Tambah Task</h3>
+            <h3 className="font-semibold text-lg">{editTaskId ? "Edit Task" : "Tambah Task"}</h3>
             <input
               type="text"
               placeholder="Judul Task"
@@ -109,21 +133,54 @@ const NavigationTabs = ({ tasks = [], setTasks = () => {} }) => {
             />
             <div className="flex justify-end gap-2 mt-2">
               <button
-                onClick={() => setShowTaskModal(false)}
+                onClick={() => {
+                  setShowTaskModal(false);
+                  setEditTaskId(null);
+                  setTaskTitle("");
+                  setTaskDue("");
+                }}
                 className="px-3 py-1 rounded-md bg-red-500 hover:bg-red-600 transition"
               >
                 Batal
               </button>
               <button
-                onClick={addTask}
+                onClick={addOrEditTask}
                 className="px-3 py-1 rounded-md bg-green-500 hover:bg-green-600 transition"
               >
-                Tambah
+                {editTaskId ? "Simpan" : "Tambah"}
               </button>
             </div>
           </motion.div>
         </div>
       )}
+
+      {/* Task List untuk Edit/Delete */}
+      <div className="mt-2 flex flex-col gap-2">
+        {tasks.map((task) => (
+          <div
+            key={task.id}
+            className="flex justify-between items-center bg-[#2e4a56]/70 p-2 rounded-md text-sm"
+          >
+            <span className={task.done ? "line-through text-gray-400" : ""}>
+              {task.title} {task.dueDate ? `(${task.dueDate})` : ""}
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => editTask(task)}
+                className="px-2 py-1 text-xs bg-blue-500 rounded hover:bg-blue-600 transition"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => deleteTask(task.id)}
+                className="px-2 py-1 text-xs bg-red-500 rounded hover:bg-red-600 transition"
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
