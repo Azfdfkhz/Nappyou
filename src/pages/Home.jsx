@@ -4,20 +4,12 @@ import HeaderPull from "../components/HeaderPull";
 import TaskCard from "../components/TaskCard";
 import NavigationTabs from "../components/NavigationTabs";
 
-export default function HomePage() {
+export default function Home() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [photo, setPhoto] = useState("");
   const [isHeaderOpen, setIsHeaderOpen] = useState(false);
   const [tasks, setTasks] = useState([]);
-  const [List, setList] = useState(null); // react-window FixedSizeList
-
-  // Ambil react-window di runtime supaya Vite tidak error
-  useEffect(() => {
-    import("react-window").then((module) => {
-      setList(() => module.FixedSizeList);
-    });
-  }, []);
 
   useEffect(() => {
     const storedName = localStorage.getItem("username");
@@ -51,14 +43,6 @@ export default function HomePage() {
     localStorage.removeItem("photoURL");
     navigate("/");
   };
-
-  const Row = ({ index, style }) => (
-    <div style={style}>
-      <Suspense fallback={<div className="text-gray-400">Loading task...</div>}>
-        <TaskCard task={tasks[index]} toggleDone={toggleDone} />
-      </Suspense>
-    </div>
-  );
 
   return (
     <div className="w-screen h-screen flex flex-col items-center justify-start bg-gradient-to-b from-[#1a4a4a] via-[#2d5a5a] to-[#d4a574] font-sans text-white p-5 sm:p-8 relative overflow-hidden">
@@ -97,7 +81,7 @@ export default function HomePage() {
       {/* Konten muncul hanya saat header tertutup */}
       {!isHeaderOpen && (
         <div className="mt-4 w-full max-w-[480px] flex flex-col gap-4 px-4">
-          <TaskCard tasks={tasks} />
+          <TaskCard tasks={tasks} toggleDone={toggleDone} />
           <NavigationTabs tasks={tasks} setTasks={setTasks} />
         </div>
       )}
