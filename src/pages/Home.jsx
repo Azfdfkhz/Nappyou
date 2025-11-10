@@ -1,10 +1,8 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-import { FixedSizeList as List } from "react-window";
-
-const HeaderPull = React.lazy(() => import("../components/HeaderPull"));
-const TaskCard = React.lazy(() => import("../components/TaskCard"));
-const NavigationTabs = React.lazy(() => import("../components/NavigationTabs"));
+import HeaderPull from "../components/HeaderPull";
+import TaskCard from "../components/TaskCard";
+import NavigationTabs from "../components/NavigationTabs";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -12,6 +10,14 @@ export default function HomePage() {
   const [photo, setPhoto] = useState("");
   const [isHeaderOpen, setIsHeaderOpen] = useState(false);
   const [tasks, setTasks] = useState([]);
+  const [List, setList] = useState(null); // react-window FixedSizeList
+
+  // Ambil react-window di runtime supaya Vite tidak error
+  useEffect(() => {
+    import("react-window").then((module) => {
+      setList(() => module.FixedSizeList);
+    });
+  }, []);
 
   useEffect(() => {
     const storedName = localStorage.getItem("username");
@@ -91,26 +97,8 @@ export default function HomePage() {
       {/* Konten muncul hanya saat header tertutup */}
       {!isHeaderOpen && (
         <div className="mt-4 w-full max-w-[480px] flex flex-col gap-4 px-4">
-          {/* Virtualized Task List */}
-          {tasks.length > 0 ? (
-            <List
-              height={400}        // tinggi list
-              itemCount={tasks.length}
-              itemSize={80}       // tinggi tiap item
-              width="100%"
-            >
-              {Row}
-            </List>
-          ) : (
-            <div className="text-white/70 text-center mt-10">
-              Belum ada task 😎
-            </div>
-          )}
-
-          {/* NavigationTabs */}
-          <Suspense fallback={<div className="text-gray-400">Loading tabs...</div>}>
-            <NavigationTabs tasks={tasks} setTasks={setTasks} />
-          </Suspense>
+          <TaskCard tasks={tasks} />
+          <NavigationTabs tasks={tasks} setTasks={setTasks} />
         </div>
       )}
     </div>

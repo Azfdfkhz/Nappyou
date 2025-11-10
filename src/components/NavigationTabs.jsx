@@ -7,7 +7,6 @@ const NavigationTabs = ({ tasks = [], setTasks = () => {} }) => {
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDue, setTaskDue] = useState("");
 
-  // Tambah task
   const addTask = () => {
     if (!taskTitle) return;
     const newTask = {
@@ -25,13 +24,11 @@ const NavigationTabs = ({ tasks = [], setTasks = () => {} }) => {
     setShowTaskModal(false);
   };
 
-  // Fungsi kirim notif (WebView Android / browser fallback)
   const notifyTask = (task) => {
-    // Android native bridge
     if (window.Android && window.Android.showNotification) {
       window.Android.showNotification(task.title, task.description || "");
     }
-    // Browser fallback
+
     else if ("Notification" in window) {
       if (Notification.permission !== "granted") {
         Notification.requestPermission().then((perm) => {
@@ -45,7 +42,6 @@ const NavigationTabs = ({ tasks = [], setTasks = () => {} }) => {
     }
   };
 
-  // Cek reminder tiap menit
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
@@ -69,7 +65,7 @@ const NavigationTabs = ({ tasks = [], setTasks = () => {} }) => {
         setTasks(newTasks);
         localStorage.setItem("tasks", JSON.stringify(newTasks));
       }
-    }, 60000); // tiap 1 menit
+    }, 60000); 
 
     return () => clearInterval(interval);
   }, [tasks]);
@@ -103,13 +99,13 @@ const NavigationTabs = ({ tasks = [], setTasks = () => {} }) => {
               placeholder="Judul Task"
               value={taskTitle}
               onChange={(e) => setTaskTitle(e.target.value)}
-              className="px-3 py-2 rounded-md text-black w-full"
+              className="px-3 py-2 rounded-md text-white w-full"
             />
             <input
               type="datetime-local"
               value={taskDue}
               onChange={(e) => setTaskDue(e.target.value)}
-              className="px-3 py-2 rounded-md text-black w-full"
+              className="px-3 py-2 rounded-md text-white w-full"
             />
             <div className="flex justify-end gap-2 mt-2">
               <button

@@ -98,4 +98,8 @@ export default function LoginScreen() {
       <p className="text-white/70 text-xs tracking-widest mb-6">AZFDFKHZ</p>
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 6cdd231 (Fix react-window build issue)
