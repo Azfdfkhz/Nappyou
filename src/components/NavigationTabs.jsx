@@ -14,14 +14,12 @@ const NavigationTabs = ({ tasks, setTasks }) => {
 
     let newTasks;
     if (editTaskId) {
-      // Edit task
       newTasks = tasks.map((task) =>
         task.id === editTaskId
           ? { ...task, title: taskTitle, dueDate: taskDue || null, notified: false }
           : task
       );
     } else {
-      // Tambah task baru
       const newTask = {
         id: uuidv4(),
         title: taskTitle,
@@ -40,7 +38,7 @@ const NavigationTabs = ({ tasks, setTasks }) => {
     setShowTaskModal(false);
   };
 
-  // Edit task (buka modal)
+  // Edit task
   const editTask = (task) => {
     setTaskTitle(task.title);
     setTaskDue(task.dueDate || "");
@@ -48,18 +46,20 @@ const NavigationTabs = ({ tasks, setTasks }) => {
     setShowTaskModal(true);
   };
 
-  // Hapus task
+  // Delete task
   const deleteTask = (taskId) => {
     const newTasks = tasks.filter((t) => t.id !== taskId);
     setTasks(newTasks);
     localStorage.setItem("tasks", JSON.stringify(newTasks));
   };
 
-  // Notifikasi task
+  // Fungsi untuk memanggil notif
   const notifyTask = (task) => {
+    // Android
     if (window.Android && window.Android.showNotification) {
       window.Android.showNotification(task.title, task.description || "");
     } else if ("Notification" in window) {
+      // Browser fallback
       if (Notification.permission !== "granted") {
         Notification.requestPermission().then((perm) => {
           if (perm === "granted") {
@@ -72,7 +72,7 @@ const NavigationTabs = ({ tasks, setTasks }) => {
     }
   };
 
-  // Cek task yang sudah waktunya notif
+  // Check setiap 10 detik task yang due
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
@@ -87,7 +87,7 @@ const NavigationTabs = ({ tasks, setTasks }) => {
         ) {
           notifyTask(task);
           updated = true;
-          return { ...task, notified: true };
+          return { ...task, notified: true }; // tandai sudah dikirim notif
         }
         return task;
       });
@@ -96,14 +96,14 @@ const NavigationTabs = ({ tasks, setTasks }) => {
         setTasks(newTasks);
         localStorage.setItem("tasks", JSON.stringify(newTasks));
       }
-    }, 10000);
+    }, 10000); // cek setiap 10 detik
 
     return () => clearInterval(interval);
   }, [tasks]);
 
   return (
     <div className="flex flex-col gap-3 w-full">
-      {/* Button + Task / Edit Task */}
+      {/* Button Tambah Task */}
       <motion.button
         whileTap={{ scale: 0.95 }}
         onClick={() => setShowTaskModal(true)}
@@ -124,9 +124,7 @@ const NavigationTabs = ({ tasks, setTasks }) => {
             exit={{ scale: 0.9, opacity: 0 }}
             className="bg-[#1b3b4a] p-6 rounded-xl w-80 text-white flex flex-col gap-3"
           >
-            <h3 className="font-semibold text-lg">
-              {editTaskId ? "Edit Task" : "Tambah Task"}
-            </h3>
+            <h3 className="font-semibold text-lg">{editTaskId ? "Edit Task" : "Tambah Task"}</h3>
             <input
               type="text"
               placeholder="Judul Task"
@@ -163,7 +161,7 @@ const NavigationTabs = ({ tasks, setTasks }) => {
         </div>
       )}
 
-      {/* List task untuk edit/hapus */}
+      {/* List Task */}
       <div className="mt-2 flex flex-col gap-2">
         {tasks.map((task) => (
           <div
