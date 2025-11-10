@@ -9,12 +9,11 @@ export default function HeaderPull({ onOpenChange }) {
   const y = useMotionValue(0);
   const timeoutRef = useRef(null);
 
+  // Load default sleep animation
   useEffect(() => {
     import("../assets/cat-sleep.json").then((mod) => setAnimation(mod.default));
-  }, []);
 
-  useEffect(() => {
-    clearTimeout(timeoutRef.current);
+    // Auto sleep after 5 sec
     timeoutRef.current = setTimeout(() => {
       import("../assets/cat-sleep.json").then((mod) => {
         setAnimation(mod.default);
@@ -23,16 +22,29 @@ export default function HeaderPull({ onOpenChange }) {
     }, 5000);
 
     return () => clearTimeout(timeoutRef.current);
-  }, [catText]);
+  }, []);
+
+  // Reset to sleep animation after interaction
+  const resetToSleep = () => {
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      import("../assets/cat-sleep.json").then((mod) => {
+        setAnimation(mod.default);
+        setCatText("Zzz... 💤");
+      });
+    }, 5000);
+  };
 
   const handleTap = () => {
     import("../assets/cat-laugh.json").then((mod) => setAnimation(mod.default));
     setCatText("Hihihi");
+    resetToSleep();
   };
 
   const handleDragCat = () => {
     import("../assets/cat-love.json").then((mod) => setAnimation(mod.default));
     setCatText("Prr");
+    resetToSleep();
   };
 
   const toggleOpen = (value) => {
@@ -75,8 +87,8 @@ export default function HeaderPull({ onOpenChange }) {
 
             <div
               className="w-[160px] h-[160px] active:scale-95 transition-transform"
-              onClick={handleTap}
-              onTouchMove={handleDragCat}
+              onPointerDown={handleTap}
+              onPointerMove={handleDragCat}
             >
               <Lottie animationData={animation} loop={true} />
             </div>
