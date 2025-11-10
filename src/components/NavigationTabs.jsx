@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { v4 as uuidv4 } from "uuid";
 
@@ -8,19 +8,20 @@ const NavigationTabs = ({ tasks, setTasks }) => {
   const [taskDue, setTaskDue] = useState("");
   const [editTaskId, setEditTaskId] = useState(null);
 
+  // Tambah atau edit task
   const addOrEditTask = () => {
     if (!taskTitle) return;
 
     let newTasks;
     if (editTaskId) {
-      // Edit existing task
+      // Edit task
       newTasks = tasks.map((task) =>
         task.id === editTaskId
           ? { ...task, title: taskTitle, dueDate: taskDue || null, notified: false }
           : task
       );
     } else {
-      // Add new task
+      // Tambah task baru
       const newTask = {
         id: uuidv4(),
         title: taskTitle,
@@ -39,6 +40,7 @@ const NavigationTabs = ({ tasks, setTasks }) => {
     setShowTaskModal(false);
   };
 
+  // Edit task (buka modal)
   const editTask = (task) => {
     setTaskTitle(task.title);
     setTaskDue(task.dueDate || "");
@@ -46,12 +48,14 @@ const NavigationTabs = ({ tasks, setTasks }) => {
     setShowTaskModal(true);
   };
 
+  // Hapus task
   const deleteTask = (taskId) => {
     const newTasks = tasks.filter((t) => t.id !== taskId);
     setTasks(newTasks);
     localStorage.setItem("tasks", JSON.stringify(newTasks));
   };
 
+  // Notifikasi task
   const notifyTask = (task) => {
     if (window.Android && window.Android.showNotification) {
       window.Android.showNotification(task.title, task.description || "");
@@ -68,7 +72,8 @@ const NavigationTabs = ({ tasks, setTasks }) => {
     }
   };
 
-  React.useEffect(() => {
+  // Cek task yang sudah waktunya notif
+  useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
       let updated = false;
@@ -98,6 +103,7 @@ const NavigationTabs = ({ tasks, setTasks }) => {
 
   return (
     <div className="flex flex-col gap-3 w-full">
+      {/* Button + Task / Edit Task */}
       <motion.button
         whileTap={{ scale: 0.95 }}
         onClick={() => setShowTaskModal(true)}
@@ -109,6 +115,7 @@ const NavigationTabs = ({ tasks, setTasks }) => {
         {editTaskId ? "Edit Task" : "+ Task"}
       </motion.button>
 
+      {/* Modal tambah/edit task */}
       {showTaskModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-20">
           <motion.div
@@ -117,7 +124,9 @@ const NavigationTabs = ({ tasks, setTasks }) => {
             exit={{ scale: 0.9, opacity: 0 }}
             className="bg-[#1b3b4a] p-6 rounded-xl w-80 text-white flex flex-col gap-3"
           >
-            <h3 className="font-semibold text-lg">{editTaskId ? "Edit Task" : "Tambah Task"}</h3>
+            <h3 className="font-semibold text-lg">
+              {editTaskId ? "Edit Task" : "Tambah Task"}
+            </h3>
             <input
               type="text"
               placeholder="Judul Task"
@@ -154,7 +163,7 @@ const NavigationTabs = ({ tasks, setTasks }) => {
         </div>
       )}
 
-      {/* Task List untuk Edit/Delete */}
+      {/* List task untuk edit/hapus */}
       <div className="mt-2 flex flex-col gap-2">
         {tasks.map((task) => (
           <div
