@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import HeaderPull from "../components/HeaderPull";
-import TaskCard from "../components/TaskCard";
 import NavigationTabs from "../components/NavigationTabs";
 
 export default function Home() {
@@ -16,7 +16,7 @@ export default function Home() {
     const storedPhoto = localStorage.getItem("photoURL");
     const storedTasks = localStorage.getItem("tasks");
 
-    if (!storedName) navigate("/");
+    if (!storedName) navigate("/"); 
     else setUsername(storedName);
 
     if (storedPhoto) setPhoto(storedPhoto);
@@ -45,18 +45,16 @@ export default function Home() {
   };
 
   return (
-    <div className="w-screen h-screen flex flex-col items-center justify-start bg-gradient-to-b from-[#1a4a4a] via-[#2d5a5a] to-[#d4a574] font-sans text-white p-5 sm:p-8 relative overflow-hidden">
-      
-      {/* Header */}
+    <div className="w-screen h-screen flex flex-col items-center justify-start bg-gradient-to-b from-[#294684] to-[#C1D4E2] font-[Poppins] text-gray-900 p-5 sm:p-8 relative overflow-hidden transition-all duration-500">
       <div className="w-full max-w-[480px] flex justify-between items-center mt-10 sm:mt-12">
-        <p className="text-xl sm:text-2xl font-semibold text-white/90">
-          Welcome {username}
+        <p className="text-xl sm:text-2xl font-semibold text-gray-900">
+          Welcome, {username}
         </p>
 
         <div
           onClick={handleLogout}
           title="Logout"
-          className="w-14 h-14 rounded-full overflow-hidden bg-white/90 flex items-center justify-center cursor-pointer hover:scale-110 transition-all duration-300"
+          className="w-14 h-14 rounded-full overflow-hidden bg-white/80 flex items-center justify-center cursor-pointer hover:scale-110 hover:bg-white transition-transform duration-300"
         >
           {photo ? (
             <img
@@ -66,25 +64,31 @@ export default function Home() {
               loading="lazy"
             />
           ) : (
-            <span className="text-gray-400 font-bold text-3xl">●</span>
+            <span className="text-gray-500 font-bold text-3xl">●</span>
           )}
         </div>
       </div>
 
-      {/* HeaderPull */}
       <div className="mt-2 w-full flex justify-center px-4">
-        <Suspense fallback={<div className="text-gray-400">Loading...</div>}>
+        <Suspense fallback={<div className="text-gray-500">Loading...</div>}>
           <HeaderPull onOpenChange={setIsHeaderOpen} />
         </Suspense>
       </div>
 
-      {/* Konten muncul hanya saat header tertutup */}
-      {!isHeaderOpen && (
-        <div className="mt-4 w-full max-w-[480px] flex flex-col gap-4 px-4">
-          <TaskCard tasks={tasks} toggleDone={toggleDone} />
-          <NavigationTabs tasks={tasks} setTasks={setTasks} />
-        </div>
-      )}
+      <AnimatePresence mode="wait">
+        {!isHeaderOpen && (
+          <motion.div
+            key="content"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="mt-4 w-full max-w-[480px] flex flex-col gap-6 px-4"
+          >
+            <NavigationTabs tasks={tasks} setTasks={setTasks} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
