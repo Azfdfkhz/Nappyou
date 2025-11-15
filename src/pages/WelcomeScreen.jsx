@@ -53,7 +53,7 @@ export default function WelcomeScreen() {
         transition={{ duration: 0.8, delay: 1 }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        onClick={() => navigate("/home")}
+        onClick={() => navigate("/login")}
         className="mt-10 mb-8 px-16 py-3 text-gray-900 font-[Poppins] font-semibold rounded-full backdrop-blur-lg bg-white/40 shadow-md border border-black/10 hover:bg-white/60 transition-all duration-300 z-10"
       >
         Continue
