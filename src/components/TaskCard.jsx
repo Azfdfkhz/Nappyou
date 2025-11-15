@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Edit2, Trash2 } from "lucide-react";
 
 const TaskCard = ({ tasks = [], toggleDone, editTask, deleteTask }) => {
   const [todayStr, setTodayStr] = useState(getTodayStr());
@@ -53,18 +54,26 @@ const TaskCard = ({ tasks = [], toggleDone, editTask, deleteTask }) => {
                 {task.title}
               </div>
 
-              <div className="flex gap-1">
+              <div className="flex gap-2">
                 <button
-                  onClick={() => editTask(task)}
-                  className="text-xs bg-blue-500 px-2 py-0.5 rounded hover:bg-blue-600"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    editTask(task);
+                  }}
+                  className="hover:text-blue-400 transition"
+                  title="Edit Task"
                 >
-                  Edit
+                  <Edit2 size={15} />
                 </button>
                 <button
-                  onClick={() => deleteTask(task.id)}
-                  className="text-xs bg-red-500 px-2 py-0.5 rounded hover:bg-red-600"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteTask(task.id);
+                  }}
+                  className="hover:text-red-400 transition"
+                  title="Hapus Task"
                 >
-                  Hapus
+                  <Trash2 size={15} />
                 </button>
               </div>
             </li>
