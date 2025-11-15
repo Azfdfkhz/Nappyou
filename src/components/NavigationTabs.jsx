@@ -1,14 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { v4 as uuidv4 } from "uuid";
+import TaskCard from "./TaskCard";
 
 const NavigationTabs = ({ tasks, setTasks }) => {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDue, setTaskDue] = useState("");
+  const [taskTime, setTaskTime] = useState("");
   const [editTaskId, setEditTaskId] = useState(null);
+  const [toast, setToast] = useState(null);
 
-  // Tambah atau edit task
+  const showToast = (msg, color = "#4ade80") => {
+    setToast({ msg, color });
+    setTimeout(() => setToast(null), 2000);
+  };
+
   const addOrEditTask = () => {
     if (!taskTitle) return;
 
@@ -16,128 +23,117 @@ const NavigationTabs = ({ tasks, setTasks }) => {
     if (editTaskId) {
       newTasks = tasks.map((task) =>
         task.id === editTaskId
-          ? { ...task, title: taskTitle, dueDate: taskDue || null, notified: false }
+          ? {
+              ...task,
+              title: taskTitle,
+              dueDate: taskDue || null,
+              dueTime: taskTime || null,
+            }
           : task
       );
+      showToast("✅ Task berhasil diperbarui", "#60a5fa");
     } else {
       const newTask = {
         id: uuidv4(),
         title: taskTitle,
         dueDate: taskDue || null,
+        dueTime: taskTime || null,
         done: false,
-        notified: false,
       };
       newTasks = [...tasks, newTask];
+      showToast("📝 Task berhasil ditambahkan!", "#4ade80");
+
+      // 🔔 Kirim notifikasi ke Android (jika di WebView)
+      if (window.Android && window.Android.scheduleNotification && taskDue) {
+        const dateTime = taskTime
+          ? `${taskDue}T${taskTime}` // gunakan jam user
+          : `${taskDue}T07:30`; // fallback default jam 07:30
+        window.Android.scheduleNotification(taskTitle, dateTime);
+      }
     }
 
     setTasks(newTasks);
     localStorage.setItem("tasks", JSON.stringify(newTasks));
     setTaskTitle("");
     setTaskDue("");
+    setTaskTime("");
     setEditTaskId(null);
     setShowTaskModal(false);
   };
 
-  // Edit task
-  const editTask = (task) => {
-    setTaskTitle(task.title);
-    setTaskDue(task.dueDate || "");
-    setEditTaskId(task.id);
-    setShowTaskModal(true);
-  };
-
-  // Delete task
-  const deleteTask = (taskId) => {
-    const newTasks = tasks.filter((t) => t.id !== taskId);
+  const toggleDone = (id) => {
+    const newTasks = tasks.map((task) =>
+      task.id === id ? { ...task, done: !task.done } : task
+    );
     setTasks(newTasks);
     localStorage.setItem("tasks", JSON.stringify(newTasks));
   };
 
-  // Fungsi untuk memanggil notif
-  const notifyTask = (task) => {
-    // Android
-    if (window.Android && window.Android.showNotification) {
-      window.Android.showNotification(task.title, task.description || "");
-    } else if ("Notification" in window) {
-      // Browser fallback
-      if (Notification.permission !== "granted") {
-        Notification.requestPermission().then((perm) => {
-          if (perm === "granted") {
-            new Notification(task.title, { body: task.description || "" });
-          }
-        });
-      } else {
-        new Notification(task.title, { body: task.description || "" });
-      }
-    }
+  const deleteTask = (id) => {
+    const newTasks = tasks.filter((t) => t.id !== id);
+    setTasks(newTasks);
+    localStorage.setItem("tasks", JSON.stringify(newTasks));
+    showToast("🗑️ Task dihapus!", "#f87171");
   };
 
-  // Check setiap 10 detik task yang due
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      let updated = false;
-
-      const newTasks = tasks.map((task) => {
-        if (
-          task.dueDate &&
-          !task.notified &&
-          new Date(task.dueDate) <= now &&
-          !task.done
-        ) {
-          notifyTask(task);
-          updated = true;
-          return { ...task, notified: true }; // tandai sudah dikirim notif
-        }
-        return task;
-      });
-
-      if (updated) {
-        setTasks(newTasks);
-        localStorage.setItem("tasks", JSON.stringify(newTasks));
-      }
-    }, 10000); // cek setiap 10 detik
-
-    return () => clearInterval(interval);
-  }, [tasks]);
+  const editTask = (task) => {
+    setTaskTitle(task.title);
+    setTaskDue(task.dueDate || "");
+    setTaskTime(task.dueTime || "");
+    setEditTaskId(task.id);
+    setShowTaskModal(true);
+  };
 
   return (
-    <div className="flex flex-col gap-3 w-full">
-      {/* Button Tambah Task */}
+    <div className="flex flex-col items-center gap-4 relative w-full">
+      <TaskCard
+        tasks={tasks}
+        toggleDone={toggleDone}
+        editTask={editTask}
+        deleteTask={deleteTask}
+      />
+
       <motion.button
         whileTap={{ scale: 0.95 }}
         onClick={() => setShowTaskModal(true)}
-        className="px-4 sm:px-6 py-2 rounded-xl text-center min-w-[90px] sm:min-w-[100px]
-          backdrop-blur-md bg-gradient-to-b from-[#3d7b91]/70 to-[#1b3b4a]/70
-          border border-[#68a3b5]/40 text-slate-100 shadow-md
-          hover:from-[#4c8aa2]/70 hover:to-[#234a5b]/70 transition-all text-sm sm:text-base"
+        className="mt-4 px-5 py-2 rounded-full bg-[#1b3b4a]/80 border border-[#68a3b5]/40 text-white shadow-md text-sm hover:bg-[#255363]/80 transition-all duration-200"
       >
-        {editTaskId ? "Edit Task" : "+ Task"}
+        + Tambah Task
       </motion.button>
 
-      {/* Modal tambah/edit task */}
       {showTaskModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-20">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
             className="bg-[#1b3b4a] p-6 rounded-xl w-80 text-white flex flex-col gap-3"
           >
-            <h3 className="font-semibold text-lg">{editTaskId ? "Edit Task" : "Tambah Task"}</h3>
+            <h3 className="font-semibold text-lg">
+              {editTaskId ? "Edit Task" : "Tambah Task"}
+            </h3>
+
             <input
               type="text"
               placeholder="Judul Task"
               value={taskTitle}
               onChange={(e) => setTaskTitle(e.target.value)}
-              className="px-3 py-2 rounded-md text-white w-full"
+              className="px-3 py-2 rounded-md text-white bg-[#2e4a56] outline-none"
             />
+
             <input
-              type="datetime-local"
+              type="date"
               value={taskDue}
               onChange={(e) => setTaskDue(e.target.value)}
-              className="px-3 py-2 rounded-md text-white w-full"
+              className="px-3 py-2 rounded-md text-white bg-[#2e4a56] outline-none"
             />
+
+            <input
+              type="time"
+              value={taskTime}
+              onChange={(e) => setTaskTime(e.target.value)}
+              className="px-3 py-2 rounded-md text-white bg-[#2e4a56] outline-none"
+            />
+
             <div className="flex justify-end gap-2 mt-2">
               <button
                 onClick={() => {
@@ -145,11 +141,13 @@ const NavigationTabs = ({ tasks, setTasks }) => {
                   setEditTaskId(null);
                   setTaskTitle("");
                   setTaskDue("");
+                  setTaskTime("");
                 }}
                 className="px-3 py-1 rounded-md bg-red-500 hover:bg-red-600 transition"
               >
                 Batal
               </button>
+
               <button
                 onClick={addOrEditTask}
                 className="px-3 py-1 rounded-md bg-green-500 hover:bg-green-600 transition"
@@ -161,33 +159,23 @@ const NavigationTabs = ({ tasks, setTasks }) => {
         </div>
       )}
 
-      {/* List Task */}
-      <div className="mt-2 flex flex-col gap-2">
-        {tasks.map((task) => (
-          <div
-            key={task.id}
-            className="flex justify-between items-center bg-[#2e4a56]/70 p-2 rounded-md text-sm"
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-lg text-white font-medium shadow-lg"
+            style={{
+              background: toast.color,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            }}
           >
-            <span className={task.done ? "line-through text-gray-400" : ""}>
-              {task.title} {task.dueDate ? `(${task.dueDate})` : ""}
-            </span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => editTask(task)}
-                className="px-2 py-1 text-xs bg-blue-500 rounded hover:bg-blue-600 transition"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => deleteTask(task.id)}
-                className="px-2 py-1 text-xs bg-red-500 rounded hover:bg-red-600 transition"
-              >
-                Hapus
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+            {toast.msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
