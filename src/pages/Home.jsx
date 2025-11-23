@@ -5,7 +5,7 @@ import HeaderPull from "../components/HeaderPull";
 import NavigationTabs from "../components/NavigationTabs";
 import BottomNavbar from "../components/BottomNavbar"; 
 
-// 🔹 Theme Gradients
+// Theme Gradients
 const themes = {
   blue: "from-[#7EA8D9] to-[#E8F2FF]",
   orange: "from-[#FFC8A2] to-[#FFF5EB]",
@@ -20,9 +20,9 @@ export default function Home() {
   const [photo, setPhoto] = useState("");
   const [isHeaderOpen, setIsHeaderOpen] = useState(false);
   const [tasks, setTasks] = useState([]);
-  const [activeTheme, setActiveTheme] = useState("blue"); // theme state
+  const [activeTheme, setActiveTheme] = useState("blue"); 
 
-  // 🔹 Load user info, tasks, and theme from localStorage
+  // Load user info, tasks, and theme from localStorage
   useEffect(() => {
     const storedName = localStorage.getItem("username");
     const storedPhoto = localStorage.getItem("photoURL");
@@ -37,7 +37,7 @@ export default function Home() {
     if (storedTheme && themes[storedTheme]) setActiveTheme(storedTheme);
   }, [navigate]);
 
-  // 🔹 Save tasks to localStorage with debounce
+  // Save tasks to localStorage with debounce
   const saveTasks = (newTasks) => {
     setTasks(newTasks);
     clearTimeout(window.saveTimeout);

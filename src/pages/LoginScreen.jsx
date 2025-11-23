@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
-import { auth, provider } from "../firebaseConfig"; // ✅ pakai config kamu
+import { auth, provider } from "../firebaseConfig"; 
 import { signInWithPopup, onAuthStateChanged } from "firebase/auth";
 
 export default function LoginScreen() {
@@ -11,7 +11,6 @@ export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // ✅ Cek user tersimpan
     const savedUsername = localStorage.getItem("username");
     const savedPhotoURL = localStorage.getItem("photoURL");
 
@@ -21,7 +20,6 @@ export default function LoginScreen() {
       return;
     }
 
-    // ✅ Listener login Firebase Web
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         const { displayName, photoURL, uid } = firebaseUser;
@@ -34,7 +32,6 @@ export default function LoginScreen() {
       }
     });
 
-    // ✅ Listener login Android
     window.onLoginSuccess = (userData) => {
       localStorage.setItem("username", userData.username);
       localStorage.setItem("photoURL", userData.photoURL);
@@ -50,13 +47,11 @@ export default function LoginScreen() {
   }, [navigate]);
 
   const handleLogin = async () => {
-    // 🔹 Login di Android
     if (window.Android && window.Android.loginWithGoogle) {
       window.Android.loginWithGoogle();
       return;
     }
 
-    // 🔹 Login di browser biasa (Firebase)
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
