@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Edit2, Trash2 } from "lucide-react";
 
-// Warna tema dari Profile
 const themeColors = {
   blue: { base: "#3B82F6", glass: "rgba(59,130,246,0.15)" },
   orange: { base: "#FF9850", glass: "rgba(255,152,80,0.15)" },
@@ -11,11 +10,16 @@ const themeColors = {
   purple: { base: "#A79BFF", glass: "rgba(167,155,255,0.15)" },
 };
 
+// 🔹 Fungsi dideklarasikan sebelum dipakai
+function getTodayStr() {
+  const today = new Date();
+  return today.toISOString().split("T")[0];
+}
+
 const TaskCard = ({ tasks = [], toggleDone, editTask, deleteTask }) => {
   const [todayStr, setTodayStr] = useState(getTodayStr());
   const [activeTheme, setActiveTheme] = useState("blue");
 
-  // Ambil tema dari localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme && themeColors[savedTheme]) {
@@ -25,13 +29,12 @@ const TaskCard = ({ tasks = [], toggleDone, editTask, deleteTask }) => {
 
   const colors = themeColors[activeTheme] || themeColors.blue;
 
-  function getTodayStr() {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
-  }
-
+  // 🔹 Update otomatis setiap menit agar tanggal ganti real-time
   useEffect(() => {
-    const interval = setInterval(() => setTodayStr(getTodayStr()), 60000);
+    const interval = setInterval(() => {
+      const newToday = getTodayStr();
+      setTodayStr((prev) => (prev !== newToday ? newToday : prev));
+    }, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -47,23 +50,18 @@ const TaskCard = ({ tasks = [], toggleDone, editTask, deleteTask }) => {
         background: `linear-gradient(160deg, ${colors.glass}, rgba(0,0,0,0.3))`,
       }}
     >
-      {/* Header */}
       <div className="flex justify-between items-center mb-3">
         <h2 className="font-semibold text-[15px] tracking-wide">
           Task Hari Ini
         </h2>
         <div
           className="px-3 py-1 text-[11px] rounded-full shadow-inner border border-white/20"
-          style={{
-            background: `${colors.glass}`,
-            color: "#fff",
-          }}
+          style={{ background: colors.glass, color: "#fff" }}
         >
           {todayStr}
         </div>
       </div>
 
-      {/* Task List */}
       <ul className="space-y-1 text-[13px] min-h-[80px]">
         {tasksToday.length === 0 ? (
           <li className="text-gray-300/60 italic text-center">
@@ -80,7 +78,6 @@ const TaskCard = ({ tasks = [], toggleDone, editTask, deleteTask }) => {
                   : "hover:bg-white/10 text-white"
               }`}
             >
-              {/* Task Content */}
               <div
                 className="flex items-center gap-2 flex-1"
                 onClick={() => toggleDone(task.id)}
@@ -99,7 +96,6 @@ const TaskCard = ({ tasks = [], toggleDone, editTask, deleteTask }) => {
                 <span className="truncate">{task.title}</span>
               </div>
 
-              {/* Icons */}
               <div className="flex gap-2 items-center">
                 <motion.button
                   onClick={(e) => {
